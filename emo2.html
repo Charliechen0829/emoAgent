@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>emoAgent</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: #333;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Top navigation bar styles */
+        .top-nav {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+            backdrop-filter: blur(5px);
+        }
+        
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .logo-text {
+            font-size: 22px;
+            font-weight: 700;
+            background: linear-gradient(45deg, #ff6b6b, #ff8e53);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .nav-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ff8e53);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 4px 10px rgba(255, 107, 107, 0.3);
+        }
+        
+        .nav-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(255, 107, 107, 0.4);
+        }
+        
+        /* Main chat area styles */
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            padding-bottom: 0;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .message {
+            max-width: 85%;
+            padding: 15px 20px;
+            margin-bottom: 25px;
+            border-radius: 12px;
+            animation: fadeIn 0.3s ease;
+            position: relative;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .user-message {
+            background: linear-gradient(45deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.95));
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            align-self: flex-end;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .ai-message {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            align-self: flex-start;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .message-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        
+        .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .ai-avatar {
+            background: linear-gradient(45deg, #70a1ff, #4ecdc4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        
+        .user-avatar {
+            background: linear-gradient(45deg, #ff8a00, #ff2070);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        
+        .message-content {
+            line-height: 1.6;
+            color: #444;
+        }
+        
+        .message-content p {
+            margin-bottom: 10px;
+        }
+        
+        .support-tip {
+            background: rgba(255, 245, 230, 0.7);
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 14px;
+            margin: 10px 0;
+            overflow-x: auto;
+            border: 1px solid rgba(255, 214, 165, 0.5);
+        }
+        
+        .message-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .action-btn {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            color: #666;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .action-btn:hover {
+            background: rgba(255, 255, 255, 0.8);
+            color: #ff6b6b;
+        }
+        
+        .input-container {
+            padding: 20px;
+            padding-top: 15px;
+            position: relative;
+            background: rgba(255, 255, 255, 0.8);
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .input-area {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            border-radius: 16px;
+            padding: 12px 20px;
+            display: flex;
+            align-items: flex-end;
+            transition: all 0.3s ease;
+            position: relative;
+            backdrop-filter: blur(5px);
+        }
+        
+        .input-area:focus-within {
+            border-color: #ff6b6b;
+            box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.2);
+        }
+        
+        textarea {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #444;
+            font-size: 15px;
+            resize: none;
+            max-height: 150px;
+            padding-right: 40px;
+            outline: none;
+            height: 24px;
+        }
+        
+        .send-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ff8e53);
+            color: white;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(255, 107, 107, 0.3);
+        }
+        
+        .send-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 15px rgba(255, 107, 107, 0.4);
+        }
+        
+        .chat-info {
+            text-align: center;
+            color: #666;
+            font-size: 13px;
+            margin-top: 8px;
+        }
+        
+        /* Emotion theme elements */
+        .heart-icon {
+            color: #ff6b6b;
+            margin: 0 5px;
+        }
+        
+        .quote {
+            font-style: italic;
+            padding: 10px;
+            border-left: 3px solid #ff6b6b;
+            background: rgba(255, 245, 230, 0.5);
+            border-radius: 0 8px 8px 0;
+            margin: 10px 0;
+        }
+        
+        .support-resources {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .resource-btn {
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(255, 107, 107, 0.3);
+            color: #ff6b6b;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .resource-btn:hover {
+            background: rgba(255, 107, 107, 0.1);
+        }
+        
+        /* Login modal styles */
+        .login-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .login-container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 300px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .login-container h2 {
+            text-align: center;
+            color: #ff6b6b;
+            margin-bottom: 20px;
+        }
+        
+        .login-container input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        
+        .login-container button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(45deg, #ff6b6b, #ff8e53);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        
+        /* Report generation indicator styles */
+        .report-generating {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            align-self: flex-start;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #ff6b6b;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 2s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .message {
+                max-width: 90%;
+            }
+            
+            .top-nav {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .nav-buttons {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login modal -->
+    <div id="loginModal" class="login-modal">
+        <div class="login-container">
+            <h2>User Login</h2>
+            <div>
+                <input type="text" id="loginUsername" placeholder="Username" required>
+                <input type="password" id="loginPassword" placeholder="Password" required>
+                <button id="loginSubmit">Login</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top navigation bar -->
+    <div class="top-nav">
+        <div class="logo-area">
+            <div class="logo-text">emoAgent</div>
+        </div>
+        
+        <div class="nav-buttons">
+            <button class="nav-btn" id="new-chat-btn">
+                <i class="fas fa-plus"></i>
+                <span>New Chat</span>
+            </button>
+            <button class="nav-btn" id="history-btn">
+                <i class="fas fa-history"></i>
+                <span>History</span>
+            </button>
+            <button class="nav-btn" id="resources-btn">
+                <i class="fas fa-heart"></i>
+                <span>Resources</span>
+            </button>
+            <!-- Weekly report button -->
+            <button class="nav-btn" id="report-btn">
+                <i class="fas fa-chart-pie"></i>
+                <span>Weekly Report</span>
+            </button>
+            <!-- Login button -->
+            <button class="nav-btn" id="login-btn">
+                <i class="fas fa-sign-in-alt"></i>
+                <span>Login</span>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Main chat area -->
+    <div class="chat-container">
+        <div class="messages-container">
+            <!-- AI message -->
+            <div class="message ai-message">
+                <div class="message-header">
+                    <div class="avatar ai-avatar">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <strong>Emotional Support Assistant</strong>
+                </div>
+                <div class="message-content">
+                    <p>Hello! <i class="fas fa-heart heart-icon"></i> I'm your emotional support assistant, here to provide warm support and professional advice.</p>
+                    
+                    <div class="quote">
+                        "The darkest night will end, and the sun will rise." - Les Misérables
+                    </div>
+                    
+                    <p>No matter what you're going through, you can share with me anytime. I can help you:</p>
+                    <ul>
+                        <li>Handle emotional distress and stress</li>
+                        <li>Improve interpersonal relationships</li>
+                        <li>Build healthier self-awareness</li>
+                        <li>Develop a positive life attitude</li>
+                    </ul>
+                    
+                    <div class="support-tip">
+                        <i class="fas fa-lightbulb"></i> Tip: Spending a few minutes each day noting things you're grateful for can significantly increase happiness.
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="input-container">
+            <div class="input-area">
+                <textarea id="user-input" placeholder="Share your feelings or problems..." rows="1"></textarea>
+                <button class="send-btn" id="send-btn">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+            <div class="chat-info">
+                Safe Space · Your feelings are respected and understood here
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Actual API endpoints
+        const API_ENDPOINT = 'http://localhost:5000/api/analyze';
+        const LOGIN_API = 'http://localhost:5000/api/login';
+        const REPORT_API = 'http://localhost:5000/api/report';
+        
+        // DOM elements
+        const textarea = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+        const messagesContainer = document.querySelector('.messages-container');
+        const newChatBtn = document.getElementById('new-chat-btn');
+        const loginBtn = document.getElementById('login-btn');
+        const loginModal = document.getElementById('loginModal');
+        const loginSubmit = document.getElementById('loginSubmit');
+        const loginUsername = document.getElementById('loginUsername');
+        const loginPassword = document.getElementById('loginPassword');
+        const reportBtn = document.getElementById('report-btn');
+        
+        // Adjust textarea height
+        function adjustTextareaHeight() {
+            textarea.style.height = 'auto';
+            textarea.style.height = (textarea.scrollHeight) + 'px';
+        }
+        
+        // Initial height adjustment
+        adjustTextareaHeight();
+        
+        // Listen for input changes
+        textarea.addEventListener('input', function() {
+            adjustTextareaHeight();
+        });
+        
+        // Check login status
+        function isLoggedIn() {
+            return localStorage.getItem('user_id') !== null;
+        }
+        
+        // Login functionality
+        async function login() {
+            const username = loginUsername.value.trim();
+            const password = loginPassword.value.trim();
+            
+            if (!username || !password) {
+                alert('Please enter username and password');
+                return;
+            }
+            
+            try {
+                const response = await fetch(LOGIN_API, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                if (data.user_id) {
+                    localStorage.setItem('user_id', data.user_id);
+                    alert('Login successful!');
+                    loginModal.style.display = 'none';
+                    return true;
+                } else {
+                    throw new Error(data.error || 'Login failed');
+                }
+            } catch (error) {
+                console.error('Login failed:', error);
+                alert(`Login failed: ${error.message}`);
+                return false;
+            }
+        }
+        
+        // Handle sending messages
+        async function sendMessage() {
+            const messageText = textarea.value.trim();
+            if (messageText === '') return;
+            
+            // Check login status
+            if (!isLoggedIn()) {
+                loginModal.style.display = 'flex';
+                return;
+            }
+            
+            // Add user message
+            addMessage(messageText, 'user');
+            
+            // Clear input
+            textarea.value = '';
+            adjustTextareaHeight();
+      
+            // Add "thinking" indicator
+            addTypingIndicator();
+            
+            try {
+                // Call API for AI response
+                const response = await fetch(API_ENDPOINT, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        text: messageText,
+                        user_id: localStorage.getItem('user_id')
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`API request failed: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                // Remove typing indicator
+                document.querySelector('.typing-indicator')?.remove();
+                
+                // Add AI response
+                addMessage(data.counseling, 'ai');
+            } catch (error) {
+                // Remove typing indicator
+                document.querySelector('.typing-indicator')?.remove();
+                
+                // Display error
+                addMessage(`Sorry, unable to connect to emotional support services. Error: ${error.message}`, 'ai');
+                console.error('API call failed:', error);
+            }
+        }
+        
+        // Add message to interface
+        function addMessage(text, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message');
+            messageDiv.classList.add(sender === 'ai' ? 'ai-message' : 'user-message');
+            
+            if (sender === 'ai') {
+                messageDiv.innerHTML = `
+                    <div class="message-header">
+                        <div class="avatar ai-avatar">
+                            <i class="fas fa-heart"></i>
+                        </div>
+                        <strong>emoAgent</strong>
+                    </div>
+                    <div class="message-content">
+                        ${formatText(text)}
+                    </div>
+                    <div class="message-actions">
+                        <div class="action-btn"><i class="fas fa-copy"></i> Copy</div>
+                        <div class="action-btn"><i class="fas fa-heart heart-icon"></i> Helpful</div>
+                        <div class="action-btn"><i class="fas fa-bookmark"></i> Save</div>
+                    </div>
+                `;
+            } else {
+                messageDiv.innerHTML = `
+                    <div class="message-header">
+                        <div class="avatar user-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <strong>You</strong>
+                    </div>
+                    <div class="message-content">
+                        ${formatText(text)}
+                    </div>
+                `;
+            }
+            
+            messagesContainer.appendChild(messageDiv);
+            
+            // Scroll to bottom
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+        
+        // Format text for messages
+        function formatText(text) {
+            // Handle empty text
+            if (!text) return "";
+            // Handle line breaks
+            return text.split('\n').map(line => `<p>${line}</p>`).join('');
+        }
+    
+        function addTypingIndicator() {
+            const typingDiv = document.createElement('div');
+            typingDiv.classList.add('message', 'ai-message', 'typing-indicator');
+            
+            typingDiv.innerHTML = `
+                <div class="message-header">
+                    <div class="avatar ai-avatar">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <strong>Emotional Support Assistant</strong>
+                </div>
+                <div class="message-content">
+                    <p>Thinking...</p>
+                    <div style="display: flex; gap: 5px; padding: 10px 0;">
+                        <div style="width: 8px; height: 8px; background: #ff6b6b; border-radius: 50%; opacity: 0.4; animation: pulse 1.5s infinite;"></div>
+                        <div style="width: 8px; height: 8px; background: #ff6b6b; border-radius: 50%; opacity: 0.7; animation: pulse 1.5s infinite 0.3s;"></div>
+                        <div style="width: 8px; height: 8px; background: #ff6b6b; border-radius: 50%; opacity: 1; animation: pulse 1.5s infinite 0.6s;"></div>
+                    </div>
+                </div>
+            `;
+            
+            messagesContainer.appendChild(typingDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            
+            // Add animation
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes pulse {
+                    0%, 100% { opacity: 0.4; }
+                    50% { opacity: 1; transform: scale(1.1); }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        // Add report generation indicator
+        function addReportGeneratingIndicator() {
+            const indicatorDiv = document.createElement('div');
+            indicatorDiv.classList.add('message', 'ai-message', 'report-generating');
+            
+            indicatorDiv.innerHTML = `
+                <div class="message-header">
+                    <div class="avatar ai-avatar">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <strong>emoAgent Weekly Report</strong>
+                </div>
+                <div class="message-content">
+                    <p>Generating your emotional report...</p>
+                    <div class="loader"></div>
+                    <p>This may take a few seconds</p>
+                </div>
+            `;
+            
+            messagesContainer.appendChild(indicatorDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+        
+        // Generate weekly report
+        async function generateWeeklyReport() {
+            // Check login status
+            if (!isLoggedIn()) {
+                loginModal.style.display = 'flex';
+                return;
+            }
+            
+            // Add "generating" indicator
+            addReportGeneratingIndicator();
+            
+            try {
+                // Call API for report generation
+                const response = await fetch(REPORT_API, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        user_id: localStorage.getItem('user_id')
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Report generation failed: ${response.status}`);
+                }
+                
+                const reportData = await response.json();
+                
+                // Remove indicator
+                document.querySelector('.report-generating')?.remove();
+                
+                // Add report message
+                addMessage(reportData.report, 'ai');
+            } catch (error) {
+                document.querySelector('.report-generating')?.remove();
+                addMessage(`Report generation failed: ${error.message}`, 'ai');
+            }
+        }
+        
+        // Event listeners
+        sendBtn.addEventListener('click', sendMessage);
+        
+        textarea.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+        
+        // New chat button
+        newChatBtn.addEventListener('click', function() {
+            // Keep the first AI message
+            const messages = document.querySelectorAll('.message');
+            for (let i = 1; i < messages.length; i++) {
+                messages[i].remove();
+            }
+            
+            // Clear input
+            textarea.value = '';
+            adjustTextareaHeight();
+            
+            // Add welcome message
+            messagesContainer.scrollTop = 0;
+        });
+        
+        // Login button event
+        loginBtn.addEventListener('click', function() {
+            loginModal.style.display = 'flex';
+        });
+        
+        // Login submit event
+        loginSubmit.addEventListener('click', login);
+        
+        // Report button event
+        reportBtn.addEventListener('click', generateWeeklyReport);
+        
+        // Close modal on background click
+        loginModal.addEventListener('click', function(e) {
+            if (e.target === loginModal) {
+                loginModal.style.display = 'none';
+            }
+        });
+        
+        // Initial login status check
+        if (!isLoggedIn()) {
+            setTimeout(() => {
+                loginModal.style.display = 'flex';
+            }, 1000);
+        }
+        
+        // Add event listeners to resource buttons
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('resource-btn')) {
+                const resourceName = e.target.textContent;
+                addMessage(`I'd like to know more about "${resourceName}"`, 'user');
+                
+                // Simulate API call
+                setTimeout(() => {
+                    addMessage(`Here is some information about ${resourceName}:
+                    
+                    <div class="support-tip">
+                        <i class="fas fa-lightbulb"></i> ${resourceName} is an important tool for managing your emotions.
+                    </div>
+                    
+                    <p>You can find the complete ${resourceName} guide in our resource center, or I can provide you with key points.</p>
+                    
+                    <div class="support-resources">
+                        <div class="resource-btn">View Full Guide</div>
+                        <div class="resource-btn">Key Points Summary</div>
+                        <div class="resource-btn">Related Exercises</div>
+                    </div>`, 'ai');
+                }, 1000);
+            }
+        });
+    </script>
+</body>
+</html>
