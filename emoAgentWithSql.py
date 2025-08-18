@@ -29,7 +29,7 @@ class Config:
     MAX_LENGTH = 256  # 文本最大长度
 
     # DeepSeek API参数
-    DEEPSEEK_API_KEY = "sk-1ad68d982cb9421293ac816615f37edb"
+    DEEPSEEK_API_KEY = os.getenv("deepseek_api_key")
     DEEPSEEK_URL = "https://api.deepseek.com/chat/completions"
     DEEPSEEK_MODEL = "deepseek-chat"
 
@@ -283,7 +283,6 @@ class MentalHealthCounselor:
         }
 
     def generate_counseling(self, text, emotions):
-        # 创建情感描述字符串
         # 创建情感描述字符串
         emotion_desc = ", ".join([f"{label}({prob:.1%})" for label, prob in emotions])
 
